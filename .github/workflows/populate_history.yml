@@ -21,7 +21,10 @@ jobs:
       - name: 패키지 설치
         run: pip install -r requirements.txt
 
-      - name: 과거 90일 데이터 수집
+      - name: 종목 목록 수집 (네이버 금융)
+        run: python scripts/build_ticker_list.py
+
+      - name: 과거 90일 데이터 수집 (yfinance)
         run: python scripts/populate_history.py
 
       - name: 결과 커밋 & 푸시

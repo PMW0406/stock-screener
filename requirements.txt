@@ -1,4 +1,5 @@
 yfinance
-finance-datareader
 groq
 pandas
+requests
+beautifulsoup4

@@ -1,120 +1,95 @@
+"""
+네이버 금융 sise_fall 페이지에서 당일 하락 종목 수집
+→ yfinance로 종가 확인
+해외 IP에서도 정상 작동
+"""
 import json
 import os
-from datetime import datetime, timedelta
-import pandas as pd
-import yfinance as yf
-import FinanceDataReader as fdr
+import time
+import requests
+from bs4 import BeautifulSoup
+from datetime import datetime
 
-def get_kr_stocks():
-    """KOSPI + KOSDAQ 종목 목록 (시가총액 필터 포함)"""
-    stocks = []
-    for market, suffix in [('KOSPI', '.KS'), ('KOSDAQ', '.KQ')]:
+HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
+
+def get_naver_losers(market_code, market_name):
+    """네이버 금융 등락률 하위 종목 (sise_fall)"""
+    results = []
+
+    for page in range(1, 6):  # 최대 5페이지 (250종목)
+        url = f'https://finance.naver.com/sise/sise_fall.naver?sosok={market_code}&page={page}'
         try:
-            listing = fdr.StockListing(market)
-            print(f"  {market} 종목 수: {len(listing)}, 컬럼: {listing.columns.tolist()[:5]}")
+            resp = requests.get(url, headers=HEADERS, timeout=10)
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            table = soup.find('table', class_='type_2')
+            if not table:
+                break
 
-            sym_col  = next((c for c in listing.columns if c in ('Symbol','Code')), None)
-            cap_col  = next((c for c in listing.columns if 'Marcap' in c or 'MarketCap' in c or '시가총액' in c), None)
-            name_col = next((c for c in listing.columns if c in ('Name','종목명')), None)
+            rows = table.find_all('tr')
+            found = 0
 
-            if not sym_col or not cap_col or not name_col:
-                print(f"  {market} 필요 컬럼 없음")
-                continue
-
-            listing = listing[listing[cap_col].notna()]
-            listing = listing[
-                (listing[cap_col] >= 100_000_000_000) &
-                (listing[cap_col] <= 5_000_000_000_000)
-            ]
-
-            for _, row in listing.iterrows():
-                ticker = str(row[sym_col]).zfill(6)
-                stocks.append({
-                    'ticker':    ticker,
-                    'name':      str(row[name_col]),
-                    'market':    market,
-                    'yf_ticker': ticker + suffix,
-                    'marcap':    int(row[cap_col]),
-                    'marcap_억': round(row[cap_col] / 100_000_000, 0),
-                })
-            print(f"  {market} 필터 후: {len([s for s in stocks if s['market'] == market])}개")
-        except Exception as e:
-            print(f"  {market} 리스팅 오류: {e}")
-    return stocks
-
-def screen_date(date_str, stocks):
-    date  = datetime.strptime(date_str, '%Y%m%d')
-    start = (date - timedelta(days=10)).strftime('%Y-%m-%d')
-    end   = (date + timedelta(days=1)).strftime('%Y-%m-%d')
-
-    results    = []
-    yf_tickers = [s['yf_ticker'] for s in stocks]
-    ticker_map = {s['yf_ticker']: s for s in stocks}
-
-    BATCH = 200
-    for i in range(0, len(yf_tickers), BATCH):
-        chunk = yf_tickers[i:i + BATCH]
-        try:
-            raw = yf.download(chunk, start=start, end=end, auto_adjust=True,
-                              progress=False, threads=True)
-            if raw.empty:
-                continue
-
-            # MultiIndex 처리
-            if isinstance(raw.columns, pd.MultiIndex):
-                closes  = raw['Close']
-                volumes = raw['Volume'] if 'Volume' in raw.columns.get_level_values(0) else None
-            else:
-                closes  = raw[['Close']].rename(columns={'Close': chunk[0]})
-                volumes = None
-
-            date_idx = closes.index.strftime('%Y%m%d') == date_str
-            if not date_idx.any():
-                continue
-
-            pos = closes.index.get_loc(closes.index[date_idx][0])
-            if pos == 0:
-                continue
-
-            curr   = closes.iloc[pos]
-            prev   = closes.iloc[pos - 1]
-            change = (curr - prev) / prev * 100
-            mask   = (change <= -5) & (change >= -12)
-            hits   = change[mask].dropna()
-
-            for yf_t, chg in hits.items():
-                if yf_t not in ticker_map:
+            for row in rows:
+                cols = row.find_all('td')
+                if len(cols) < 9:
                     continue
-                price = curr[yf_t]
-                if pd.isna(price) or price == 0:
+                name_el = cols[1].find('a')
+                if not name_el or 'code=' not in name_el.get('href', ''):
                     continue
-                s = ticker_map[yf_t]
-                vol = int(volumes.iloc[pos][yf_t]) if volumes is not None and yf_t in volumes.columns else 0
+
+                ticker = name_el['href'].split('code=')[1]
+                name   = name_el.text.strip()
+
+                try:
+                    price       = int(cols[2].text.strip().replace(',', ''))
+                    change_rate = float(cols[4].text.strip().replace(',', '').replace('%', ''))
+                    volume      = int(cols[6].text.strip().replace(',', '') or 0)
+                    marcap_text = cols[7].text.strip().replace(',', '').replace('-', '0')
+                    marcap      = int(marcap_text) * 100_000_000  # 억 → 원
+                except:
+                    continue
+
+                # 하락률 -5% ~ -12%, 시가총액 1000억 ~ 5조
+                if not (-12 <= change_rate <= -5):
+                    if change_rate > -5:
+                        break  # 정렬된 페이지에서 더 이상 조건 충족 안 됨
+                    continue
+
+                if not (100_000_000_000 <= marcap <= 5_000_000_000_000):
+                    continue
+
                 results.append({
-                    'ticker':      s['ticker'],
-                    'name':        s['name'],
-                    'market':      s['market'],
-                    'close':       int(price),
-                    'change_rate': round(float(chg), 2),
-                    'volume':      vol,
-                    'market_cap':  s['marcap'],
-                    'market_cap_억': s['marcap_억'],
+                    'ticker':      ticker,
+                    'name':        name,
+                    'market':      market_name,
+                    'close':       price,
+                    'change_rate': change_rate,
+                    'volume':      volume,
+                    'market_cap':  marcap,
+                    'market_cap_억': round(marcap / 100_000_000, 0),
                 })
-        except Exception as e:
-            print(f"  배치 오류 ({i}~{i+BATCH}): {e}")
+                found += 1
 
-    results.sort(key=lambda x: x['change_rate'])
+            if found == 0:
+                break
+            time.sleep(0.2)
+
+        except Exception as e:
+            print(f"  {market_name} page {page} 오류: {e}")
+            break
+
     return results
 
 def run_screening():
     today = datetime.now().strftime('%Y%m%d')
     print(f"스크리닝 날짜: {today}")
 
-    print("종목 목록 가져오는 중...")
-    stocks = get_kr_stocks()
-    print(f"총 {len(stocks)}개 종목 대상")
+    results = []
+    for code, name in [(0, 'KOSPI'), (1, 'KOSDAQ')]:
+        losers = get_naver_losers(code, name)
+        print(f"  {name}: {len(losers)}개")
+        results.extend(losers)
 
-    results = screen_date(today, stocks)
+    results.sort(key=lambda x: x['change_rate'])
 
     output = {
         'date':       today,
@@ -129,7 +104,7 @@ def run_screening():
     with open(f'data/screening_{today}.json', 'w', encoding='utf-8') as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
-    print(f"완료: {len(results)}개 종목")
+    print(f"완료: {len(results)}개")
 
 if __name__ == '__main__':
     run_screening()
