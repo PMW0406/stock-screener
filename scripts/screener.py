@@ -1,6 +1,6 @@
 """
 네이버 금융 sise_fall 페이지에서 당일 하락 종목 수집
-→ yfinance로 종가 확인
+→ yfinance로 기술 지표 계산 후 점수 부여
 해외 IP에서도 정상 작동
 """
 import json
@@ -9,6 +9,9 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+import yfinance as yf
+import pandas as pd
+from score import score_stock, score_label
 
 HEADERS = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
 
@@ -58,14 +61,17 @@ def get_naver_losers(market_code, market_name):
                     continue
 
                 results.append({
-                    'ticker':      ticker,
-                    'name':        name,
-                    'market':      market_name,
-                    'close':       price,
-                    'change_rate': change_rate,
-                    'volume':      volume,
-                    'market_cap':  marcap,
+                    'ticker':        ticker,
+                    'name':          name,
+                    'market':        market_name,
+                    'close':         price,
+                    'change_rate':   change_rate,
+                    'volume':        volume,
+                    'market_cap':    marcap,
                     'market_cap_억': round(marcap / 100_000_000, 0),
+                    'score':         0,
+                    'score_label':   '',
+                    'indicators':    {},
                 })
                 found += 1
 
@@ -79,6 +85,29 @@ def get_naver_losers(market_code, market_name):
 
     return results
 
+def add_scores(stocks: list) -> list:
+    """yfinance로 과거 데이터를 받아 각 종목에 점수 계산"""
+    print(f"  기술 지표 계산 중 ({len(stocks)}개)...")
+    for s in stocks:
+        suffix = '.KS' if s['market'] == 'KOSPI' else '.KQ'
+        yf_t   = s['ticker'] + suffix
+        try:
+            hist = yf.download(yf_t, period='1y', auto_adjust=True, progress=False)
+            if hist.empty or len(hist) < 20:
+                continue
+            closes  = hist['Close'].squeeze()
+            volumes = hist['Volume'].squeeze()
+            sc, det = score_stock(closes.iloc[:-1], volumes.iloc[:-1],
+                                  s['volume'], s['close'], s['change_rate'])
+            s['score']       = sc
+            s['score_label'] = score_label(sc)
+            s['indicators']  = det
+        except Exception as e:
+            print(f"    {s['ticker']} 지표 오류: {e}")
+        time.sleep(0.1)
+    return stocks
+
+
 def run_screening():
     today = datetime.now().strftime('%Y%m%d')
     print(f"스크리닝 날짜: {today}")
@@ -89,7 +118,8 @@ def run_screening():
         print(f"  {name}: {len(losers)}개")
         results.extend(losers)
 
-    results.sort(key=lambda x: x['change_rate'])
+    results = add_scores(results)
+    results.sort(key=lambda x: (-x['score'], x['change_rate']))
 
     output = {
         'date':       today,

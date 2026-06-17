@@ -37,14 +37,20 @@ def analyze_with_groq(market_data, screening_data):
 
     stocks = screening_data.get('stocks', [])[:20]
     stocks_lines = '\n'.join(
-        f"- {s['name']}({s['ticker']}, {s['market']}): {s['change_rate']}% 하락, 시총 {int(s['market_cap_억'])}억원"
+        f"- {s['name']}({s['ticker']}, {s['market']}): {s['change_rate']}% 하락, "
+        f"점수 {s.get('score', '?')}/12, "
+        f"RSI {s.get('indicators', {}).get('rsi', '?')}, "
+        f"거래량배율 {s.get('indicators', {}).get('vol_ratio', '?')}x, "
+        f"시총 {int(s['market_cap_억'])}억원"
         for s in stocks
     ) if stocks else '오늘 해당 종목 없음'
 
     stocks_json = json.dumps(
         [{'ticker': s['ticker'], 'name': s['name'], 'market': s['market'],
           'close': s['close'], 'change_rate': s['change_rate'],
-          'market_cap_억': int(s['market_cap_억'])}
+          'market_cap_억': int(s['market_cap_억']),
+          'score': s.get('score', 0),
+          'indicators': s.get('indicators', {})}
          for s in screening_data.get('stocks', [])[:30]],
         ensure_ascii=False
     )
@@ -58,6 +64,9 @@ def analyze_with_groq(market_data, screening_data):
 
 [어제 한국 하락 종목 ({screening_data.get('count', 0)}개)]
 {stocks_lines}
+
+각 종목의 점수(0~12)는 RSI, 거래량 급증, 52주 저점 거리, 이동평균 위치를 종합한 반등 가능성 지표입니다.
+점수가 높을수록 반등 신호가 강하므로, 점수 높은 종목을 우선 고려하되 미국 시장 분위기와 함께 판단하세요.
 
 아래 JSON 형식으로만 답변하세요. 다른 텍스트 없이 JSON만 출력하세요:
 

@@ -90,6 +90,39 @@
   .cstat .down { color: #f85149; }
   .cstat .up { color: #3fb950; }
 
+  /* 점수 뱃지 */
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .score-high  { background: #0d4429; color: #3fb950; border: 1px solid #238636; }
+  .score-mid   { background: #1a2d00; color: #a8d467; border: 1px solid #4a6200; }
+  .score-low   { background: #2d1700; color: #d29922; border: 1px solid #5e3a00; }
+  .score-none  { background: #2d0000; color: #f85149; border: 1px solid #6e1111; }
+
+  .indicator-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .ind-chip {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #21262d;
+    color: #8b949e;
+    border: 1px solid #30363d;
+  }
+  .ind-chip.good { color: #3fb950; border-color: #238636; background: #0d1f0d; }
+  .ind-chip.warn { color: #d29922; border-color: #5e3a00; background: #1a1500; }
+  .ind-chip.bad  { color: #f85149; border-color: #6e1111; background: #1f0d0d; }
+
   .summary-box {
     background: #161b22;
     border: 1px solid #30363d;
@@ -258,6 +291,34 @@ const ct   = v => v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(2) + '%';
 const bust = () => '?t=' + Date.now();
 const fmtDate = s => s ? s.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '';
 
+function scoreBadge(score) {
+  if (score == null || score === '') return '';
+  const cls = score >= 9 ? 'score-high' : score >= 6 ? 'score-mid' : score >= 3 ? 'score-low' : 'score-none';
+  return `<span class="score-badge ${cls}">${score}/12점</span>`;
+}
+
+function indicatorChips(ind) {
+  if (!ind || Object.keys(ind).length === 0) return '';
+  const chips = [];
+  if (ind.rsi != null) {
+    const cls = ind.rsi < 30 ? 'good' : ind.rsi < 40 ? 'warn' : 'bad';
+    chips.push(`<span class="ind-chip ${cls}">RSI ${ind.rsi}</span>`);
+  }
+  if (ind.vol_ratio != null) {
+    const cls = ind.vol_ratio >= 2 ? 'good' : ind.vol_ratio >= 1.2 ? 'warn' : 'bad';
+    chips.push(`<span class="ind-chip ${cls}">거래량 ${ind.vol_ratio}배</span>`);
+  }
+  if (ind.pct_from_52w_low != null) {
+    const cls = ind.pct_from_52w_low > 30 ? 'good' : ind.pct_from_52w_low > 15 ? 'warn' : 'bad';
+    chips.push(`<span class="ind-chip ${cls}">52주저점+${ind.pct_from_52w_low}%</span>`);
+  }
+  if (ind.above_ma60 != null)
+    chips.push(`<span class="ind-chip ${ind.above_ma60 ? 'good' : 'bad'}">MA60 ${ind.above_ma60 ? '위' : '아래'}</span>`);
+  if (ind.above_ma20 != null)
+    chips.push(`<span class="ind-chip ${ind.above_ma20 ? 'good' : 'bad'}">MA20 ${ind.above_ma20 ? '위' : '아래'}</span>`);
+  return `<div class="indicator-row">${chips.join('')}</div>`;
+}
+
 function switchTab(name) {
   ['today','replay','screening','us','backtest'].forEach((n, i) => {
     document.querySelectorAll('.tab')[i].classList.toggle('active', n === name);
@@ -400,8 +461,10 @@ async function loadToday() {
                 ${c.name}
                 <span class="candidate-ticker">${c.ticker}</span>
                 <span class="badge ${(c.market||'').toLowerCase()}">${c.market||''}</span>
+                ${c.score != null ? scoreBadge(c.score) : ''}
               </div>
-              <div class="candidate-reason">${c.reason}</div>
+              ${indicatorChips(c.indicators)}
+              <div class="candidate-reason" style="margin-top:8px">${c.reason}</div>
               ${c.close ? `<div class="candidate-stats">
                 <div class="cstat">어제 종가 <span>${fmt(c.close)}원</span></div>
                 <div class="cstat">어제 등락 <span class="down">${c.change_rate?.toFixed(2)}%</span></div>
@@ -454,17 +517,21 @@ async function loadScreening(dateKey) {
         <div class="stat-card"><div class="label">평균 하락률</div><div class="value down">${avg}%</div></div>
       </div>
       <div class="table-wrap"><table>
-        <thead><tr><th>종목명</th><th>코드</th><th>시장</th><th>종가</th><th>등락률</th><th>거래량</th><th>시가총액</th></tr></thead>
-        <tbody>${d.stocks.map(s => `
-          <tr>
-            <td><strong>${s.name}</strong></td>
-            <td style="color:#8b949e">${s.ticker}</td>
+        <thead><tr><th>종목명</th><th>시장</th><th>종가</th><th>등락률</th><th>반등점수</th><th>RSI</th><th>거래량배율</th><th>MA60</th><th>시가총액</th></tr></thead>
+        <tbody>${d.stocks.map(s => {
+          const ind = s.indicators || {};
+          return `<tr>
+            <td><strong>${s.name}</strong> <span style="color:#8b949e;font-size:11px">${s.ticker}</span></td>
             <td><span class="badge ${s.market.toLowerCase()}">${s.market}</span></td>
             <td>${fmt(s.close)}원</td>
             <td class="down">${s.change_rate.toFixed(2)}%</td>
-            <td>${fmt(s.volume)}</td>
+            <td>${s.score != null ? scoreBadge(s.score) : '-'}</td>
+            <td class="${ind.rsi < 30 ? 'up' : ind.rsi < 40 ? 'neutral' : 'down'}">${ind.rsi ?? '-'}</td>
+            <td class="${ind.vol_ratio >= 2 ? 'up' : ind.vol_ratio >= 1.2 ? 'neutral' : 'down'}">${ind.vol_ratio != null ? ind.vol_ratio + 'x' : '-'}</td>
+            <td class="${ind.above_ma60 === true ? 'up' : ind.above_ma60 === false ? 'down' : 'neutral'}">${ind.above_ma60 === true ? '위 ▲' : ind.above_ma60 === false ? '아래 ▼' : '-'}</td>
             <td>${fmt(s.market_cap_억)}억</td>
-          </tr>`).join('')}
+          </tr>`;
+        }).join('')}
         </tbody>
       </table></div>`;
   } catch(e) {

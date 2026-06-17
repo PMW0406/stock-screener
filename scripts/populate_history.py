@@ -9,6 +9,7 @@ import os
 from datetime import datetime, timedelta
 import pandas as pd
 import yfinance as yf
+from score import score_stock, score_label
 
 def get_trading_days(start_date, end_date):
     days = []
@@ -82,8 +83,11 @@ def screen_from_bulk(closes, opens, volumes, date_str, ticker_map):
         price = curr[yf_t]
         if pd.isna(price) or price == 0:
             continue
-        s   = ticker_map[yf_t]
-        vol = int(volumes.iloc[pos][yf_t]) if (not volumes.empty and yf_t in volumes.columns and not pd.isna(volumes.iloc[pos][yf_t])) else 0
+        s    = ticker_map[yf_t]
+        vol  = int(volumes.iloc[pos][yf_t]) if (not volumes.empty and yf_t in volumes.columns and not pd.isna(volumes.iloc[pos][yf_t])) else 0
+        hist_c = closes[yf_t].iloc[:pos] if yf_t in closes.columns else pd.Series(dtype=float)
+        hist_v = volumes[yf_t].iloc[:pos] if (not volumes.empty and yf_t in volumes.columns) else pd.Series(dtype=float)
+        sc, det = score_stock(hist_c, hist_v, vol, float(price), float(chg))
         results.append({
             'ticker':        s['ticker'],
             'name':          s['name'],
@@ -93,8 +97,11 @@ def screen_from_bulk(closes, opens, volumes, date_str, ticker_map):
             'volume':        vol,
             'market_cap':    s['marcap'],
             'market_cap_억': s['marcap_억'],
+            'score':         sc,
+            'score_label':   score_label(sc),
+            'indicators':    det,
         })
-    results.sort(key=lambda x: x['change_rate'])
+    results.sort(key=lambda x: (-x['score'], x['change_rate']))
     return results
 
 def run_populate(days_back=90):
