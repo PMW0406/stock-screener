@@ -1,4 +1,4 @@
-pykrx
 yfinance
+FinanceDataReader
 groq
 pandas
