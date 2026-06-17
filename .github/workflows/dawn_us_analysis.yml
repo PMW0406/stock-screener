@@ -24,7 +24,7 @@ jobs:
 
       - name: 미국 시장 분석
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python scripts/us_market.py
 
       - name: 결과 커밋 & 푸시

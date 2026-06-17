@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-import google.generativeai as genai
+from groq import Groq
 import yfinance as yf
 
 def get_us_market_data():
@@ -27,9 +27,8 @@ def get_us_market_data():
             print(f"{name} 오류: {e}")
     return data
 
-def analyze_with_gemini(market_data, screening_data):
-    genai.configure(api_key=os.environ['GEMINI_API_KEY'])
-    model = genai.GenerativeModel('gemini-2.0-flash')
+def analyze_with_groq(market_data, screening_data):
+    client = Groq(api_key=os.environ['GROQ_API_KEY'])
 
     market_lines = '\n'.join(
         f"- {name}: {d['current']} ({'+' if d['change_pct'] >= 0 else ''}{d['change_pct']}%)"
@@ -66,8 +65,12 @@ def analyze_with_gemini(market_data, screening_data):
 ## 주의사항
 (오늘 매수 시 주의해야 할 리스크 2~3가지)"""
 
-    response = model.generate_content(prompt)
-    return response.text
+    response = client.chat.completions.create(
+        model='llama-3.3-70b-versatile',
+        messages=[{'role': 'user', 'content': prompt}],
+        max_tokens=1500,
+    )
+    return response.choices[0].message.content
 
 def run_us_analysis():
     market_data = get_us_market_data()
@@ -77,7 +80,7 @@ def run_us_analysis():
         with open('data/latest_screening.json', 'r', encoding='utf-8') as f:
             screening_data = json.load(f)
 
-    analysis = analyze_with_gemini(market_data, screening_data)
+    analysis = analyze_with_groq(market_data, screening_data)
 
     output = {
         'date': datetime.now().strftime('%Y%m%d'),
