@@ -1,4 +1,4 @@
 pykrx
 yfinance
-anthropic
+google-generativeai
 pandas

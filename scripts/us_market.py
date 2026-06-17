@@ -1,7 +1,7 @@
 import json
 import os
 from datetime import datetime
-import anthropic
+import google.generativeai as genai
 import yfinance as yf
 
 def get_us_market_data():
@@ -27,8 +27,9 @@ def get_us_market_data():
             print(f"{name} 오류: {e}")
     return data
 
-def analyze_with_claude(market_data, screening_data):
-    client = anthropic.Anthropic(api_key=os.environ['ANTHROPIC_API_KEY'])
+def analyze_with_gemini(market_data, screening_data):
+    genai.configure(api_key=os.environ['GEMINI_API_KEY'])
+    model = genai.GenerativeModel('gemini-1.5-flash')
 
     market_lines = '\n'.join(
         f"- {name}: {d['current']} ({'+' if d['change_pct'] >= 0 else ''}{d['change_pct']}%)"
@@ -64,12 +65,8 @@ def analyze_with_claude(market_data, screening_data):
 ## 리스크 요인
 (주의해야 할 점 2~3가지)"""
 
-    response = client.messages.create(
-        model='claude-sonnet-4-6',
-        max_tokens=1500,
-        messages=[{'role': 'user', 'content': prompt}],
-    )
-    return response.content[0].text
+    response = model.generate_content(prompt)
+    return response.text
 
 def run_us_analysis():
     market_data = get_us_market_data()
@@ -79,7 +76,7 @@ def run_us_analysis():
         with open('data/latest_screening.json', 'r', encoding='utf-8') as f:
             screening_data = json.load(f)
 
-    analysis = analyze_with_claude(market_data, screening_data)
+    analysis = analyze_with_gemini(market_data, screening_data)
 
     output = {
         'date': datetime.now().strftime('%Y%m%d'),
