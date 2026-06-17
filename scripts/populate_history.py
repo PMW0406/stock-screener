@@ -129,18 +129,23 @@ def run_populate(days_back=90):
     for i, date_str in enumerate(trading_days):
         screen_file = f'data/screening_{date_str}.json'
 
+        needs_rescore = False
         if os.path.exists(screen_file):
             with open(screen_file, 'r', encoding='utf-8') as f:
                 existing = json.load(f)
-            if existing.get('count', 0) > 0:
+            stocks_today = existing.get('stocks', [])
+            # 점수 없는 파일이면 재계산
+            if stocks_today and 'score' not in stocks_today[0]:
+                needs_rescore = True
+            if existing.get('count', 0) > 0 and not needs_rescore:
                 print(f"[{i+1}/{len(trading_days)}] {date_str} 스킵 ({existing['count']}개)")
-                stocks_today = existing['stocks']
             else:
                 stocks_today = screen_from_bulk(closes, opens, volumes, date_str, ticker_map)
-                existing = {'date': date_str, 'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'count': len(stocks_today), 'stocks': stocks_today}
+                data = {'date': date_str, 'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'count': len(stocks_today), 'stocks': stocks_today}
                 with open(screen_file, 'w', encoding='utf-8') as f:
-                    json.dump(existing, f, ensure_ascii=False, indent=2)
-                print(f"[{i+1}/{len(trading_days)}] {date_str} → {len(stocks_today)}개")
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                tag = '재점수' if needs_rescore else '신규'
+                print(f"[{i+1}/{len(trading_days)}] {date_str} [{tag}] → {len(stocks_today)}개")
         else:
             stocks_today = screen_from_bulk(closes, opens, volumes, date_str, ticker_map)
             data = {'date': date_str, 'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'count': len(stocks_today), 'stocks': stocks_today}
