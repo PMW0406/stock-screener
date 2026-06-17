@@ -5,6 +5,9 @@ on:
     - cron: '0 19 * * 0-4'  # 새벽 4시 KST (7pm UTC 전날) 평일
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
