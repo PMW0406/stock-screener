@@ -1,6 +1,427 @@
 {
   "date": "20260408",
-  "updated_at": "2026-06-17 02:24:43",
-  "count": 0,
-  "stocks": []
+  "updated_at": "2026-06-17 02:41:05",
+  "count": 42,
+  "stocks": [
+    {
+      "ticker": "042040",
+      "name": "케이피엠테크",
+      "market": "KOSDAQ",
+      "close": 13400,
+      "change_rate": -11.84,
+      "volume": 59108,
+      "market_cap": 2470900000000,
+      "market_cap_억": 24709.0
+    },
+    {
+      "ticker": "137950",
+      "name": "제이씨케미칼",
+      "market": "KOSDAQ",
+      "close": 4510,
+      "change_rate": -11.39,
+      "volume": 2159953,
+      "market_cap": 2226800000000,
+      "market_cap_억": 22268.0
+    },
+    {
+      "ticker": "037230",
+      "name": "한국팩키지",
+      "market": "KOSDAQ",
+      "close": 2195,
+      "change_rate": -11.13,
+      "volume": 1868145,
+      "market_cap": 2980000000000,
+      "market_cap_억": 29800.0
+    },
+    {
+      "ticker": "004090",
+      "name": "한국석유",
+      "market": "KOSPI",
+      "close": 15300,
+      "change_rate": -10.47,
+      "volume": 1319461,
+      "market_cap": 1269400000000,
+      "market_cap_억": 12694.0
+    },
+    {
+      "ticker": "123750",
+      "name": "알톤",
+      "market": "KOSDAQ",
+      "close": 2280,
+      "change_rate": -10.24,
+      "volume": 485111,
+      "market_cap": 1381900000000,
+      "market_cap_억": 13819.0
+    },
+    {
+      "ticker": "460870",
+      "name": "에스엠씨지",
+      "market": "KOSDAQ",
+      "close": 3220,
+      "change_rate": -9.55,
+      "volume": 1267337,
+      "market_cap": 2007300000000,
+      "market_cap_억": 20073.0
+    },
+    {
+      "ticker": "005860",
+      "name": "한일사료",
+      "market": "KOSDAQ",
+      "close": 3790,
+      "change_rate": -9.33,
+      "volume": 4583191,
+      "market_cap": 3940400000000,
+      "market_cap_억": 39404.0
+    },
+    {
+      "ticker": "012205",
+      "name": "계양전기우",
+      "market": "KOSPI",
+      "close": 9200,
+      "change_rate": -9.27,
+      "volume": 954290,
+      "market_cap": 116900000000,
+      "market_cap_억": 1169.0
+    },
+    {
+      "ticker": "019660",
+      "name": "글로본",
+      "market": "KOSDAQ",
+      "close": 2485,
+      "change_rate": -8.97,
+      "volume": 856793,
+      "market_cap": 1394400000000,
+      "market_cap_억": 13944.0
+    },
+    {
+      "ticker": "001120",
+      "name": "LX인터내셔널",
+      "market": "KOSPI",
+      "close": 46150,
+      "change_rate": -8.79,
+      "volume": 693731,
+      "market_cap": 3876000000000,
+      "market_cap_억": 38760.0
+    },
+    {
+      "ticker": "023900",
+      "name": "풍국주정",
+      "market": "KOSDAQ",
+      "close": 10170,
+      "change_rate": -8.71,
+      "volume": 709587,
+      "market_cap": 1260000000000,
+      "market_cap_억": 12600.0
+    },
+    {
+      "ticker": "219390",
+      "name": "RISE 미국S&P원유생산기업(합성 H)",
+      "market": "KOSPI",
+      "close": 7355,
+      "change_rate": -8.52,
+      "volume": 894820,
+      "market_cap": 245000000000,
+      "market_cap_억": 2450.0
+    },
+    {
+      "ticker": "129920",
+      "name": "대성하이텍",
+      "market": "KOSDAQ",
+      "close": 10430,
+      "change_rate": -8.51,
+      "volume": 427044,
+      "market_cap": 1624900000000,
+      "market_cap_억": 16249.0
+    },
+    {
+      "ticker": "357580",
+      "name": "아모센스",
+      "market": "KOSDAQ",
+      "close": 13670,
+      "change_rate": -8.26,
+      "volume": 877151,
+      "market_cap": 1179000000000,
+      "market_cap_억": 11790.0
+    },
+    {
+      "ticker": "024940",
+      "name": "PN풍년",
+      "market": "KOSDAQ",
+      "close": 3405,
+      "change_rate": -8.22,
+      "volume": 675724,
+      "market_cap": 1000000000000,
+      "market_cap_억": 10000.0
+    },
+    {
+      "ticker": "252410",
+      "name": "RISE 200선물인버스",
+      "market": "KOSPI",
+      "close": 1952,
+      "change_rate": -8.14,
+      "volume": 50740,
+      "market_cap": 200000000000,
+      "market_cap_억": 2000.0
+    },
+    {
+      "ticker": "145670",
+      "name": "ACE 인버스",
+      "market": "KOSPI",
+      "close": 1915,
+      "change_rate": -7.93,
+      "volume": 578635,
+      "market_cap": 310000000000,
+      "market_cap_억": 3100.0
+    },
+    {
+      "ticker": "065450",
+      "name": "빅텍",
+      "market": "KOSDAQ",
+      "close": 4875,
+      "change_rate": -7.84,
+      "volume": 3601827,
+      "market_cap": 2949600000000,
+      "market_cap_억": 29496.0
+    },
+    {
+      "ticker": "117580",
+      "name": "대성에너지",
+      "market": "KOSPI",
+      "close": 9050,
+      "change_rate": -7.46,
+      "volume": 1207854,
+      "market_cap": 2750000000000,
+      "market_cap_억": 27500.0
+    },
+    {
+      "ticker": "253240",
+      "name": "KIWOOM 200선물인버스",
+      "market": "KOSPI",
+      "close": 1963,
+      "change_rate": -7.41,
+      "volume": 63052,
+      "market_cap": 122000000000,
+      "market_cap_억": 1220.0
+    },
+    {
+      "ticker": "218420",
+      "name": "KODEX 미국S&P500에너지(합성)",
+      "market": "KOSPI",
+      "close": 19480,
+      "change_rate": -7.15,
+      "volume": 413296,
+      "market_cap": 245600000000,
+      "market_cap_억": 2456.0
+    },
+    {
+      "ticker": "053050",
+      "name": "지에스이",
+      "market": "KOSDAQ",
+      "close": 2620,
+      "change_rate": -7.09,
+      "volume": 1451500,
+      "market_cap": 2998800000000,
+      "market_cap_억": 29988.0
+    },
+    {
+      "ticker": "137940",
+      "name": "넥스트아이",
+      "market": "KOSDAQ",
+      "close": 2800,
+      "change_rate": -6.98,
+      "volume": 478947,
+      "market_cap": 853700000000,
+      "market_cap_억": 8537.0
+    },
+    {
+      "ticker": "001550",
+      "name": "조비",
+      "market": "KOSPI",
+      "close": 14600,
+      "change_rate": -6.71,
+      "volume": 321699,
+      "market_cap": 519200000000,
+      "market_cap_억": 5192.0
+    },
+    {
+      "ticker": "289930",
+      "name": "웨이비스",
+      "market": "KOSDAQ",
+      "close": 18650,
+      "change_rate": -6.7,
+      "volume": 694066,
+      "market_cap": 1314900000000,
+      "market_cap_억": 13149.0
+    },
+    {
+      "ticker": "100700",
+      "name": "세운메디칼",
+      "market": "KOSDAQ",
+      "close": 2775,
+      "change_rate": -6.57,
+      "volume": 2557014,
+      "market_cap": 4380000000000,
+      "market_cap_억": 43800.0
+    },
+    {
+      "ticker": "000250",
+      "name": "삼천당제약",
+      "market": "KOSDAQ",
+      "close": 485000,
+      "change_rate": -6.55,
+      "volume": 1445517,
+      "market_cap": 2345700000000,
+      "market_cap_억": 23457.0
+    },
+    {
+      "ticker": "474800",
+      "name": "KIWOOM 미국원유에너지기업",
+      "market": "KOSPI",
+      "close": 15435,
+      "change_rate": -6.48,
+      "volume": 1110965,
+      "market_cap": 235000000000,
+      "market_cap_억": 2350.0
+    },
+    {
+      "ticker": "348030",
+      "name": "모비릭스",
+      "market": "KOSDAQ",
+      "close": 2740,
+      "change_rate": -6.48,
+      "volume": 693243,
+      "market_cap": 960400000000,
+      "market_cap_억": 9604.0
+    },
+    {
+      "ticker": "210120",
+      "name": "캔버스엔",
+      "market": "KOSDAQ",
+      "close": 1482,
+      "change_rate": -6.38,
+      "volume": 441266,
+      "market_cap": 2423700000000,
+      "market_cap_억": 24237.0
+    },
+    {
+      "ticker": "001380",
+      "name": "SG글로벌",
+      "market": "KOSPI",
+      "close": 2274,
+      "change_rate": -6.11,
+      "volume": 673746,
+      "market_cap": 2248200000000,
+      "market_cap_억": 22482.0
+    },
+    {
+      "ticker": "408470",
+      "name": "한패스",
+      "market": "KOSDAQ",
+      "close": 17840,
+      "change_rate": -5.96,
+      "volume": 1158699,
+      "market_cap": 1057200000000,
+      "market_cap_억": 10572.0
+    },
+    {
+      "ticker": "309930",
+      "name": "조이웍스앤코",
+      "market": "KOSDAQ",
+      "close": 1126,
+      "change_rate": -5.95,
+      "volume": 216952,
+      "market_cap": 489700000000,
+      "market_cap_억": 4897.0
+    },
+    {
+      "ticker": "018670",
+      "name": "SK가스",
+      "market": "KOSPI",
+      "close": 243000,
+      "change_rate": -5.81,
+      "volume": 59412,
+      "market_cap": 925700000000,
+      "market_cap_억": 9257.0
+    },
+    {
+      "ticker": "006890",
+      "name": "태경케미컬",
+      "market": "KOSPI",
+      "close": 8270,
+      "change_rate": -5.49,
+      "volume": 423468,
+      "market_cap": 1160000000000,
+      "market_cap_억": 11600.0
+    },
+    {
+      "ticker": "016590",
+      "name": "신대양제지",
+      "market": "KOSPI",
+      "close": 12100,
+      "change_rate": -5.47,
+      "volume": 81811,
+      "market_cap": 4029800000000,
+      "market_cap_억": 40298.0
+    },
+    {
+      "ticker": "481070",
+      "name": "에이유브랜즈",
+      "market": "KOSDAQ",
+      "close": 16550,
+      "change_rate": -5.43,
+      "volume": 39969,
+      "market_cap": 1433000000000,
+      "market_cap_억": 14330.0
+    },
+    {
+      "ticker": "376900",
+      "name": "로킷헬스케어",
+      "market": "KOSDAQ",
+      "close": 94400,
+      "change_rate": -5.41,
+      "volume": 665627,
+      "market_cap": 1587400000000,
+      "market_cap_억": 15874.0
+    },
+    {
+      "ticker": "065690",
+      "name": "파커스",
+      "market": "KOSDAQ",
+      "close": 1371,
+      "change_rate": -5.38,
+      "volume": 49737,
+      "market_cap": 1404900000000,
+      "market_cap_억": 14049.0
+    },
+    {
+      "ticker": "250780",
+      "name": "TIGER 코스닥150선물인버스",
+      "market": "KOSPI",
+      "close": 2140,
+      "change_rate": -5.31,
+      "volume": 1200687,
+      "market_cap": 370000000000,
+      "market_cap_억": 3700.0
+    },
+    {
+      "ticker": "270520",
+      "name": "앱튼",
+      "market": "KOSDAQ",
+      "close": 1450,
+      "change_rate": -5.23,
+      "volume": 441618,
+      "market_cap": 1965900000000,
+      "market_cap_억": 19659.0
+    },
+    {
+      "ticker": "095910",
+      "name": "에스에너지",
+      "market": "KOSDAQ",
+      "close": 1811,
+      "change_rate": -5.18,
+      "volume": 3816280,
+      "market_cap": 3729700000000,
+      "market_cap_억": 37297.0
+    }
+  ]
 }
