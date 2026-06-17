@@ -113,6 +113,15 @@
     line-height: 1.7;
   }
   .risk-box h3 { color: #f0c040; margin-bottom: 6px; font-weight: 600; }
+  .replay-section {
+    margin-bottom: 24px;
+  }
+  .replay-section h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #79c0ff;
+    margin-bottom: 12px;
+  }
 
   /* 시장 지수 */
   .market-grid {
@@ -187,6 +196,7 @@
 
 <div class="tabs">
   <button class="tab active" onclick="switchTab('today')">🎯 오늘 매수 후보</button>
+  <button class="tab" onclick="switchTab('replay')">🔍 과거 검증</button>
   <button class="tab" onclick="switchTab('screening')">📉 어제 하락 종목</button>
   <button class="tab" onclick="switchTab('us')">🌙 미국 시장</button>
   <button class="tab" onclick="switchTab('backtest')">📈 백테스트</button>
@@ -197,6 +207,18 @@
   <!-- 오늘 매수 후보 -->
   <div id="panel-today" class="panel active">
     <div id="today-body"><div class="loading">분석 데이터 불러오는 중...</div></div>
+  </div>
+
+  <!-- 과거 검증 -->
+  <div id="panel-replay" class="panel">
+    <div class="date-bar">
+      <label>날짜 선택</label>
+      <select class="date-select" id="replay-date-select" onchange="loadReplay(this.value)">
+        <option value="">날짜를 선택하세요</option>
+      </select>
+      <span style="font-size:11px;color:#8b949e">※ 그날 하락 종목 + 미국 시장 + 다음날 실제 결과</span>
+    </div>
+    <div id="replay-body"><div class="no-data">날짜를 선택하면 그날의 전체 흐름을 보여드립니다.</div></div>
   </div>
 
   <!-- 어제 하락 종목 -->
@@ -237,7 +259,7 @@ const bust = () => '?t=' + Date.now();
 const fmtDate = s => s ? s.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3') : '';
 
 function switchTab(name) {
-  ['today','screening','us','backtest'].forEach((n, i) => {
+  ['today','replay','screening','us','backtest'].forEach((n, i) => {
     document.querySelectorAll('.tab')[i].classList.toggle('active', n === name);
     document.getElementById('panel-' + n).classList.toggle('active', n === name);
   });
@@ -249,12 +271,97 @@ async function loadDateList() {
     const dates = await fetch('data/date_list.json' + bust()).then(r => r.json());
     const ss = document.getElementById('screen-date-select');
     const bs = document.getElementById('bt-date-select');
+    const rs = document.getElementById('replay-date-select');
     dates.forEach(d => {
       const label = fmtDate(d);
       ss.add(new Option(label, d));
       bs.add(new Option(label, d));
+      rs.add(new Option(label, d));
     });
   } catch(e) {}
+}
+
+// ── 과거 검증 ──
+async function loadReplay(dateKey) {
+  const el = document.getElementById('replay-body');
+  if (!dateKey) return;
+  el.innerHTML = '<div class="loading">불러오는 중...</div>';
+  try {
+    const [screenRes, usRes, btRes] = await Promise.allSettled([
+      fetch(`data/screening_${dateKey}.json` + bust()).then(r => r.json()),
+      fetch(`data/us_${dateKey}.json` + bust()).then(r => r.json()),
+      fetch(`data/backtest_${dateKey}.json` + bust()).then(r => r.json()),
+    ]);
+
+    const screen = screenRes.status === 'fulfilled' ? screenRes.value : null;
+    const us     = usRes.status === 'fulfilled'     ? usRes.value     : null;
+    const bt     = btRes.status === 'fulfilled'     ? btRes.value     : null;
+
+    if (!screen) {
+      el.innerHTML = '<div class="no-data">해당 날짜의 하락 종목 데이터가 없습니다.</div>';
+      return;
+    }
+
+    // 미국 시장 카드
+    const mktHtml = us?.market_data
+      ? `<div class="replay-section">
+          <h3>🌐 그날 밤 미국 시장 (${fmtDate(dateKey)})</h3>
+          <div class="market-grid">${Object.entries(us.market_data).map(([name, v]) => `
+            <div class="market-card">
+              <div class="m-name">${name}</div>
+              <div class="m-value ${cc(v.change_pct)}">${fmt(v.current)}</div>
+              <div class="m-chg ${cc(v.change_pct)}">${ct(v.change_pct)}</div>
+            </div>`).join('')}
+          </div>
+        </div>`
+      : `<div class="replay-section"><div class="no-data" style="padding:10px">미국 시장 데이터 없음 (과거 데이터 수집 필요)</div></div>`;
+
+    // 백테스트 결과 맵 (ticker → returns)
+    const btMap = {};
+    (bt?.results || []).forEach(r => { btMap[r.ticker] = r; });
+
+    // 하락 종목 + 다음날 결과 테이블
+    const stocks = screen.stocks || [];
+    const tableHtml = `
+      <div class="replay-section">
+        <h3>📉 ${fmtDate(dateKey)} 하락 종목 → 다음날 실제 결과</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>종목명</th><th>시장</th><th>그날 하락률</th><th>다음날 시가↑↓</th><th>다음날 종가↑↓</th></tr></thead>
+          <tbody>${stocks.map(s => {
+            const r = btMap[s.ticker];
+            return `<tr>
+              <td><strong>${s.name}</strong> <span style="color:#8b949e;font-size:11px">${s.ticker}</span></td>
+              <td><span class="badge ${s.market.toLowerCase()}">${s.market}</span></td>
+              <td class="down">${s.change_rate.toFixed(2)}%</td>
+              <td class="${r ? cc(r.open_return) : 'neutral'}">${r ? ct(r.open_return) : '-'}</td>
+              <td class="${r ? cc(r.close_return) : 'neutral'}">${r ? ct(r.close_return) : '-'}</td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+        </table></div>
+      </div>`;
+
+    // 요약 통계 (백테스트 데이터 있을 때)
+    let summaryHtml = '';
+    const btRecords = bt?.results || [];
+    if (btRecords.length) {
+      const winRate = btRecords.filter(r => r.close_return > 0).length / btRecords.length * 100;
+      const avgRet  = btRecords.reduce((a,r) => a + r.close_return, 0) / btRecords.length;
+      summaryHtml = `
+        <div class="replay-section">
+          <h3>📊 그날 전략 성과</h3>
+          <div class="stats">
+            <div class="stat-card"><div class="label">검증 종목 수</div><div class="value neutral">${btRecords.length}개</div></div>
+            <div class="stat-card"><div class="label">평균 종가 수익률</div><div class="value ${cc(avgRet)}">${avgRet>=0?'+':''}${avgRet.toFixed(2)}%</div></div>
+            <div class="stat-card"><div class="label">승률</div><div class="value ${winRate>=50?'up':'down'}">${winRate.toFixed(1)}%</div></div>
+          </div>
+        </div>`;
+    }
+
+    el.innerHTML = summaryHtml + mktHtml + tableHtml;
+  } catch(e) {
+    el.innerHTML = `<div class="error">데이터를 불러오지 못했습니다.<br><small>${e.message}</small></div>`;
+  }
 }
 
 // ── 오늘 매수 후보 ──
