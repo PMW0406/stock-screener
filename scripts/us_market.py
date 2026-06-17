@@ -29,7 +29,7 @@ def get_us_market_data():
 
 def analyze_with_gemini(market_data, screening_data):
     genai.configure(api_key=os.environ['GEMINI_API_KEY'])
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.0-flash')
 
     market_lines = '\n'.join(
         f"- {name}: {d['current']} ({'+' if d['change_pct'] >= 0 else ''}{d['change_pct']}%)"
