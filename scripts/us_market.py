@@ -41,36 +41,55 @@ def analyze_with_groq(market_data, screening_data):
         for s in stocks
     ) if stocks else '오늘 해당 종목 없음'
 
+    stocks_json = json.dumps(
+        [{'ticker': s['ticker'], 'name': s['name'], 'market': s['market'],
+          'close': s['close'], 'change_rate': s['change_rate'],
+          'market_cap_억': int(s['market_cap_억'])}
+         for s in screening_data.get('stocks', [])[:30]],
+        ensure_ascii=False
+    )
+
     prompt = f"""당신은 한국 주식 단기 트레이딩 전문가입니다.
 어제 한국 주식시장에서 5~12% 하락한 종목들이 있습니다.
-미국 증시 마감 결과를 보고, 오늘 한국 장 개장 시 어떤 종목이 반등할지 분석해주세요.
+미국 증시 마감 결과를 보고, 오늘 한국 장 개장 시 반등 가능성을 분석해주세요.
 
 [미국 증시 현황]
 {market_lines}
 
-[어제 한국 하락 종목 ({screening_data.get('count', 0)}개) - 오늘 반등 후보]
+[어제 한국 하락 종목 ({screening_data.get('count', 0)}개)]
 {stocks_lines}
 
-아래 형식으로 한국어로 답변해주세요:
+아래 JSON 형식으로만 답변하세요. 다른 텍스트 없이 JSON만 출력하세요:
 
-## 미국 증시 마감 분위기
-(어젯밤 미국 시장 전반적 흐름 2~3문장)
+{{
+  "market_summary": "미국 증시 전반적 분위기 2~3문장",
+  "kr_market_outlook": "오늘 한국 시장 예상 2~3문장",
+  "buy_candidates": [
+    {{
+      "ticker": "종목코드",
+      "name": "종목명",
+      "reason": "반등 예상 이유 (미국 시장과 연관지어 구체적으로)"
+    }}
+  ],
+  "risk_factors": "오늘 매수 시 주의사항 2~3가지"
+}}
 
-## 오늘 한국 시장 예상
-(미국 증시가 오늘 한국 장에 미칠 영향 2~3문장)
-
-## 오늘 아침 반등 주목 종목 TOP 5
-(어제 하락 종목 중 오늘 반등 가능성이 높은 종목과 구체적인 이유. 미국 시장 흐름과 연관지어 설명)
-
-## 주의사항
-(오늘 매수 시 주의해야 할 리스크 2~3가지)"""
+buy_candidates는 반등 가능성 높은 순서로 최대 5개. 종목이 없으면 빈 배열 [].
+반드시 위 하락 종목 목록에 있는 종목만 선택하세요."""
 
     response = client.chat.completions.create(
         model='llama-3.3-70b-versatile',
         messages=[{'role': 'user', 'content': prompt}],
-        max_tokens=1500,
+        max_tokens=2000,
     )
-    return response.choices[0].message.content
+    text = response.choices[0].message.content.strip()
+    # JSON 파싱 시도
+    try:
+        start = text.find('{')
+        end   = text.rfind('}') + 1
+        return json.loads(text[start:end])
+    except:
+        return {'market_summary': text, 'kr_market_outlook': '', 'buy_candidates': [], 'risk_factors': ''}
 
 def run_us_analysis():
     market_data = get_us_market_data()
@@ -87,6 +106,8 @@ def run_us_analysis():
         'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
         'market_data': market_data,
         'analysis': analysis,
+        'screening_date': screening_data.get('date', ''),
+        'screening_count': screening_data.get('count', 0),
     }
 
     os.makedirs('data', exist_ok=True)
