@@ -1,33 +1,33 @@
 {
-  "date": "20260701",
-  "updated_at": "2026-07-01 19:32:59",
+  "date": "20260702",
+  "updated_at": "2026-07-02 19:30:04",
   "market_data": {
     "S&P 500": {
-      "current": 7499.09,
-      "change_pct": -0.0
+      "current": 7449.89,
+      "change_pct": -0.45
     },
     "NASDAQ": {
-      "current": 26134.94,
-      "change_pct": -0.3
+      "current": 25713.21,
+      "change_pct": -1.26
     },
     "다우존스": {
-      "current": 52339.29,
-      "change_pct": 0.04
+      "current": 52638.19,
+      "change_pct": 0.64
     },
     "VIX 공포지수": {
-      "current": 16.24,
-      "change_pct": -1.28
+      "current": 16.79,
+      "change_pct": 1.21
     },
     "달러인덱스": {
-      "current": 101.4,
-      "change_pct": 0.21
+      "current": 100.88,
+      "change_pct": -0.51
     }
   },
   "analysis": {
-    "market_summary": "미국 증시 전반적 분위기는 혼조된 모습을 보이고 있습니다. 다우존스와 S&P 500은 소폭 상승했지만, NASDAQ는 하락했고, VIX 공포지수는 약간 낮아졌습니다. 달러인덱스는 소폭 상승했습니다.",
-    "kr_market_outlook": "오늘 한국 시장은 어제 하락한 종목들이 반등할 가능성이 있습니다. 미국 시장의 혼조된 분위기로 인해 한국 시장도 일정한 영향을 받을 수 있지만, 내부적인 요인에 따라 반등을 기대할 수 있습니다. 특히, 점수 높은 종목들은 미국 시장의 영향을 받지 않고 내부적인 강도로 반등할 possibility가 있습니다.",
+    "market_summary": "미국 증시에서 다우존스 INDEX는 소폭 상승하였으나, S&P 500과 NASDAQ은 음으로마감하였다. VIX 공포지수는 상승하였다.",
+    "kr_market_outlook": "미국 시장의 혼조된 분위기로 인해 한국 시장에서도 변동성이 큰 하루가 될 가능성이 있다.",
     "buy_candidates": [],
-    "risk_factors": "오늘 매수 시 주의사항은 미국 시장의 혼조된 분위기가 계속되거나悪化할 경우 한국 시장에도 부정적인 영향을 줄 수 있다는 점입니다. 또한, 달러인덱スの 상승이 지속될 경우 한국 내수 산업에 영향을 줄 수 있습니다. 따라서 투자 전에는 각종 뉴스와 시장 동향을 주의깊게 관찰하여야 합니다."
+    "risk_factors": "미국 증시의 혼조된 분위기, VIX 공포지수의 상승, 달러 인덱스의 변동"
   },
   "screening_date": "20260617",
   "screening_count": 0
